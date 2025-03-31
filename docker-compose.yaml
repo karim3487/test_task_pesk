@@ -1,0 +1,41 @@
+version: '3.9'
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: auth_api
+    command: uv run uvicorn test_task_pesk.asgi:application --host 0.0.0.0 --port 8000
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+    env_file:
+      - .env.docker
+    depends_on:
+      - db
+      - redis
+
+  db:
+    image: postgres:15
+    container_name: postgres_auth
+    restart: always
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+
+  redis:
+    image: redis:7
+    container_name: redis_auth
+    restart: always
+    ports:
+      - "6379:6379"
+
+volumes:
+  postgres_data:
