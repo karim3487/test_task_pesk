@@ -152,3 +152,12 @@ REST_FRAMEWORK = {
 
 # Redis
 REDIS_URL = env("REDIS_URL")
+# Constants for Redis key prefixes
+WHITELIST_PREFIX = "whitelist:"
+BLACKLIST_PREFIX = "blacklist:"
+
+# JWT Service
+ACCESS_TOKEN_LIFETIME = 60 * 15  # 15 minutes in seconds
+REFRESH_TOKEN_LIFETIME = 60 * 60 * 24 * 7  # 7 days in seconds
+
+ALGORITHM = "HS256"

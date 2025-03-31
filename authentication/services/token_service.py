@@ -1,9 +1,8 @@
 import time
-from utils.redis_client import redis_client
 
-# Constants for Redis key prefixes
-WHITELIST_PREFIX = "whitelist:"
-BLACKLIST_PREFIX = "blacklist:"
+from django.conf import settings
+
+from utils.redis_client import redis_client
 
 
 class TokenService:
@@ -12,18 +11,11 @@ class TokenService:
     """
 
     @staticmethod
-    def _current_timestamp() -> int:
-        """
-        Return the current timestamp as an integer.
-        """
-        return int(time.time())
-
-    @staticmethod
     def _calculate_ttl(exp: int) -> int:
         """
         Calculate the time-to-live (TTL) for a token based on its expiration time.
         """
-        ttl = exp - TokenService._current_timestamp()
+        ttl = exp - int(time.time())
         return ttl if ttl > 0 else 0
 
     @staticmethod
@@ -33,7 +25,7 @@ class TokenService:
         """
         ttl = TokenService._calculate_ttl(exp)
         if ttl > 0:
-            redis_client.setex(f"{WHITELIST_PREFIX}{jti}", ttl, "1")
+            redis_client.setex(f"{settings.WHITELIST_PREFIX}{jti}", ttl, "1")
         # Optionally, handle the case where ttl <= 0
 
     @staticmethod
@@ -43,7 +35,7 @@ class TokenService:
         """
         ttl = TokenService._calculate_ttl(exp)
         if ttl > 0:
-            redis_client.setex(f"{BLACKLIST_PREFIX}{jti}", ttl, "1")
+            redis_client.setex(f"{settings.BLACKLIST_PREFIX}{jti}", ttl, "1")
         # Optionally, handle the case where ttl <= 0
 
     @staticmethod
@@ -51,18 +43,18 @@ class TokenService:
         """
         Check if the token with the given jti is in the blacklist.
         """
-        return redis_client.exists(f"{BLACKLIST_PREFIX}{jti}") == 1
+        return redis_client.exists(f"{settings.BLACKLIST_PREFIX}{jti}") == 1
 
     @staticmethod
     def is_whitelisted(jti: str) -> bool:
         """
         Check if the token with the given jti is in the whitelist.
         """
-        return redis_client.exists(f"{WHITELIST_PREFIX}{jti}") == 1
+        return redis_client.exists(f"{settings.WHITELIST_PREFIX}{jti}") == 1
 
     @staticmethod
     def remove_from_whitelist(jti: str) -> None:
         """
         Remove a token from the whitelist.
         """
-        redis_client.delete(f"{WHITELIST_PREFIX}{jti}")
+        redis_client.delete(f"{settings.WHITELIST_PREFIX}{jti}")

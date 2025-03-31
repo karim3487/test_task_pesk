@@ -1,27 +1,15 @@
 import jwt
 import uuid
 import time
+
 from django.conf import settings
-
-ACCESS_TOKEN_LIFETIME = 60 * 15  # 15 minutes in seconds
-REFRESH_TOKEN_LIFETIME = 60 * 60 * 24 * 7  # 7 days in seconds
-
-SECRET_KEY = settings.SECRET_KEY
-ALGORITHM = "HS256"
-
-
-def _current_timestamp() -> int:
-    """
-    Returns the current timestamp as an integer.
-    """
-    return int(time.time())
 
 
 def generate_tokens(user_id: int) -> tuple[str, str]:
     """
     Generates access and refresh JWT tokens for the given user ID.
     """
-    now = _current_timestamp()
+    now = int(time.time())
 
     # Create payload for the access token
     access_payload = {
@@ -29,7 +17,7 @@ def generate_tokens(user_id: int) -> tuple[str, str]:
         "sub": str(user_id),
         "jti": str(uuid.uuid4()),
         "iat": now,
-        "exp": now + ACCESS_TOKEN_LIFETIME,
+        "exp": now + settings.ACCESS_TOKEN_LIFETIME,
     }
 
     # Create payload for the refresh token
@@ -38,12 +26,16 @@ def generate_tokens(user_id: int) -> tuple[str, str]:
         "sub": str(user_id),
         "jti": str(uuid.uuid4()),
         "iat": now,
-        "exp": now + REFRESH_TOKEN_LIFETIME,
+        "exp": now + settings.REFRESH_TOKEN_LIFETIME,
     }
 
     # Encode payloads to generate JWT tokens
-    access_token = jwt.encode(access_payload, SECRET_KEY, algorithm=ALGORITHM)
-    refresh_token = jwt.encode(refresh_payload, SECRET_KEY, algorithm=ALGORITHM)
+    access_token = jwt.encode(
+        access_payload, settings.SECRET_KEY, algorithm=settings.ALGORITHM
+    )
+    refresh_token = jwt.encode(
+        refresh_payload, settings.SECRET_KEY, algorithm=settings.ALGORITHM
+    )
 
     return access_token, refresh_token
 
@@ -53,7 +45,9 @@ def decode_token(token: str) -> dict:
     Decodes a JWT token and returns its payload.
     """
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        payload = jwt.decode(
+            token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
+        )
         return payload
     except jwt.ExpiredSignatureError as e:
         # Token has expired
