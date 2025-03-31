@@ -145,7 +145,9 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # DRF
 REST_FRAMEWORK = {
-    "DEFAULT_AUTHENTICATION_CLASSES": (),
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "authentication.authentication.CustomJWTAuthentication",
+    ),
 }
 
 # Redis
